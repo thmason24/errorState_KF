@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 
 
 dt = 0.01
-time = np.arange(0,50,dt)
-sigma = 0.04
+time = np.arange(0,100,dt)
+sigma = 0.00
+bias = 0.001 * np.array([1, 1, 1])
 
 yaw = 0.1*np.sin(time/6) 
 pitch = 1.5*yaw
@@ -28,9 +29,9 @@ p = rollRate - yawRate * np.sin(pitch)
 q = pitchRate * np.cos(roll) + yawRate * np.sin(roll) * np.cos(pitch)
 r = -pitchRate * np.sin(roll) + yawRate * np.cos(roll) * np.cos(pitch)
 
-p = p + sigma * np.random.randn(len(p))
-q = q + sigma * np.random.randn(len(q))
-r = r + sigma * np.random.randn(len(r))
+p = p + sigma * np.random.randn(len(p))  +  bias[0]
+q = q + sigma * np.random.randn(len(q))  +  bias[1]
+r = r + sigma * np.random.randn(len(r))  +  bias[2]
 
 
 
@@ -38,7 +39,7 @@ q_est = trans.quaternion_from_euler(0,0,0)
 q_insOnly = trans.quaternion_from_euler(0,0,0)
 
 
-gain = 0.01
+gain = 0.001
 yawEst = []
 yawINS = []
 pitchEst = []
@@ -70,9 +71,6 @@ for i,t in enumerate(time):
     #errorAngles = q_error[1:5]
     q_innov = np.hstack((1,gain*q_error[1:5]))
     q_est = trans.quaternion_multiply(q_innov,q_ins)
-    
-    
-    
     
     yawEst.append(trans.euler_from_quaternion(q_est)[2])
     pitchEst.append(trans.euler_from_quaternion(q_est)[1])
