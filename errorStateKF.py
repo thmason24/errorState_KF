@@ -3,13 +3,13 @@ import transformations as trans
 import matplotlib.pyplot as plt
 
 
-dt = 0.001
-time = np.arange(0,100,dt)
-sigma = 0.05
+dt = 0.01
+time = np.arange(0,50,dt)
+sigma = 0.01
 
-yaw = np.sin(time/6) 
+yaw = 0.1*np.sin(time/6) 
 pitch = 1.5*yaw
-roll = np.sin(time/4)
+roll =0.1*np.sin(time/4)
 
 
 
@@ -88,4 +88,4 @@ plt.plot(time,yaw)
 plt.plot(time,yaw_meas)
 plt.plot(time,yawINS)
 plt.plot(time,yawEst)
-
+print(q_error)
