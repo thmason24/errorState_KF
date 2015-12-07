@@ -34,10 +34,11 @@ r = r + sigma * np.random.randn(len(r))
 
 
 
-quat_ins = trans.quaternion_from_euler(0,0,0)
+q_est = trans.quaternion_from_euler(0,0,0)
+q_insOnly = trans.quaternion_from_euler(0,0,0)
 
-gain = 0.0000001
-gain = 0.5
+
+gain = 0.01
 yawEst = []
 yawINS = []
 pitchEst = []
@@ -50,24 +51,25 @@ yaw_crct = []
 for i,t in enumerate(time):
 #   integrate ins
     omega = np.array([0,p[i], q[i], r[i]])
-    quat_ins = quat_ins + 0.5*dt*trans.quaternion_multiply(quat_ins, omega)
-    yawINS.append(trans.euler_from_quaternion(quat_ins)[2])
-    pitchINS.append(trans.euler_from_quaternion(quat_ins)[0]) 
-    rollINS.append(trans.euler_from_quaternion(quat_ins)[1])
+    q_ins = q_est + 0.5*dt*trans.quaternion_multiply(q_est, omega)
+    q_insOnly = q_insOnly + 0.5*dt*trans.quaternion_multiply(q_insOnly, omega)
+    yawINS.append(trans.euler_from_quaternion(q_insOnly)[2])
+    pitchINS.append(trans.euler_from_quaternion(q_insOnly)[0]) 
+    rollINS.append(trans.euler_from_quaternion(q_insOnly)[1])
 
 
 #   generate truth quaternion
     #quat_meas = trans.quaternion_from_euler(yaw[i],pitch[i],roll[i])
-    quat_meas = trans.quaternion_from_euler(roll[i],pitch[i],yaw[i])
+    q_meas = trans.quaternion_from_euler(roll[i],pitch[i],yaw[i])
         
-    yaw_meas.append(trans.euler_from_quaternion(quat_meas)[0])
+    yaw_meas.append(trans.euler_from_quaternion(q_meas)[0])
         
-    q_error = trans.quaternion_multiply(quat_meas,trans.quaternion_inverse(quat_ins))
+    q_error = trans.quaternion_multiply(q_meas,trans.quaternion_inverse(q_ins))
     q_error = q_error / np.linalg.norm(q_error)
     q_error = np.hstack((1,q_error[1:5]))
     #errorAngles = q_error[1:5]
     q_innov = np.hstack((1,gain*q_error[1:5]))
-    q_est = trans.quaternion_multiply(q_innov,quat_ins)
+    q_est = trans.quaternion_multiply(q_innov,q_ins)
     
     
     
@@ -97,5 +99,5 @@ plt.plot(time,rollEst)
 
 plt.figure()
 plt.plot(time,yaw)
-#plt.plot(time,yawINS)
+plt.plot(time,yawINS)
 plt.plot(time,yawEst)
