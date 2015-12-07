@@ -3,8 +3,8 @@ import transformations as trans
 import matplotlib.pyplot as plt
 
 
-dt = 0.01
-time = np.arange(0,500,dt)
+dt = 0.001
+time = np.arange(0,100,dt)
 sigma = 0.05
 
 yaw = np.sin(time/6) 
@@ -37,17 +37,35 @@ r = r + sigma * np.random.randn(len(r))
 quat_ins = trans.quaternion_from_euler(0,0,0)
 
 yawEst = []
+yawINS = []
 pitchEst = []
+pitchINS = []
 rollEst = []
-
+rollINS = []
+yaw_meas = []
 omegas = []
+yaw_crct = []
 for i,t in enumerate(time):
-#integrate ins
+#   integrate ins
     omega = np.array([0,p[i], q[i], r[i]])
     quat_ins = quat_ins + 0.5*dt*trans.quaternion_multiply(quat_ins, omega)
-    yawEst.append(trans.euler_from_quaternion(quat_ins)[2])
-    pitchEst.append(trans.euler_from_quaternion(quat_ins)[1]) 
-    rollEst.append(trans.euler_from_quaternion(quat_ins)[0])
+    yawINS.append(trans.euler_from_quaternion(quat_ins)[2])
+    pitchINS.append(trans.euler_from_quaternion(quat_ins)[0]) 
+    rollINS.append(trans.euler_from_quaternion(quat_ins)[1])
+
+
+#   generate truth quaternion
+    quat_meas = trans.quaternion_from_euler(yaw[i],pitch[i],roll[i])
+    yaw_meas.append(trans.euler_from_quaternion(quat_meas)[0])
+        
+    q_error = trans.quaternion_multiply(quat_meas,trans.quaternion_inverse(quat_ins))
+    q_corrected = trans.quaternion_multiply(q_error,quat_ins)
+    yawEst.append(trans.euler_from_quaternion(q_corrected)[0])
+    pitchEst.append(trans.euler_from_quaternion(q_corrected)[1])
+    rollEst.append(trans.euler_from_quaternion(q_corrected)[2])
+    
+
+#   calculate quaternion rotation from INS solution to measured solution
 
 
 plt.subplot(3,1,1)
@@ -64,3 +82,10 @@ plt.subplot(3,1,3)
 
 plt.plot(time,roll)
 plt.plot(time,rollEst)
+
+plt.figure()
+plt.plot(time,yaw)
+plt.plot(time,yaw_meas)
+plt.plot(time,yawINS)
+plt.plot(time,yawEst)
+
