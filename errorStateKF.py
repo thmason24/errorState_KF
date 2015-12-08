@@ -36,6 +36,8 @@ r = r + sigma * np.random.randn(len(r))  +  bias[2]
 
 
 q_est = trans.quaternion_from_euler(0,0,0)
+biasEst  = np.array([0,0,0])
+
 q_insOnly = trans.quaternion_from_euler(0,0,0)
 
 
@@ -51,7 +53,7 @@ omegas = []
 yaw_crct = []
 for i,t in enumerate(time):
 #   integrate ins
-    omega = np.array([0,p[i], q[i], r[i]])
+    omega = np.array([0,p[i]-biasEst[0], q[i]-biasEst[1], r[i]-biasEst[2]])
     q_ins = q_est + 0.5*dt*trans.quaternion_multiply(q_est, omega)
     q_insOnly = q_insOnly + 0.5*dt*trans.quaternion_multiply(q_insOnly, omega)
     yawINS.append(trans.euler_from_quaternion(q_insOnly)[2])
@@ -67,9 +69,10 @@ for i,t in enumerate(time):
         
     q_error = trans.quaternion_multiply(q_meas,trans.quaternion_inverse(q_ins))
     q_error = q_error / np.linalg.norm(q_error)
-    q_error = np.hstack((1,q_error[1:5]))
+    q_error = np.hstack((1,q_error[1:4]))
     #errorAngles = q_error[1:5]
-    q_innov = np.hstack((1,gain*q_error[1:5]))
+    q_innov = np.hstack((1,gain*q_error[1:4]))
+    #biasEst = biasEst + bgain*q_error[1:5]
     q_est = trans.quaternion_multiply(q_innov,q_ins)
     
     yawEst.append(trans.euler_from_quaternion(q_est)[2])
