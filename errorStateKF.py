@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 dt = 0.01
-time = np.arange(0,200,dt)
+time = np.arange(0,500,dt)
 sigma = 0.04
 bias = 0.001 * np.array([1, 1, 1])
 
@@ -41,8 +41,9 @@ biasEst  = np.array([0,0,0])
 q_insOnly = trans.quaternion_from_euler(0,0,0)
 
 
-gain = 0.01
+gain = 0.001
 bgain = 0.001
+
 yawEst = []
 yawINS = []
 pitchEst = []
