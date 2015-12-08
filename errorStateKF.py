@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 
 dt = 0.01
-time = np.arange(0,100,dt)
-sigma = 0.00
+time = np.arange(0,200,dt)
+sigma = 0.04
 bias = 0.001 * np.array([1, 1, 1])
 
 yaw = 0.1*np.sin(time/6) 
@@ -41,7 +41,8 @@ biasEst  = np.array([0,0,0])
 q_insOnly = trans.quaternion_from_euler(0,0,0)
 
 
-gain = 0.001
+gain = 0.01
+bgain = 0.001
 yawEst = []
 yawINS = []
 pitchEst = []
@@ -53,8 +54,9 @@ omegas = []
 yaw_crct = []
 for i,t in enumerate(time):
 #   integrate ins
-    omega = np.array([0,p[i]-biasEst[0], q[i]-biasEst[1], r[i]-biasEst[2]])
-    q_ins = q_est + 0.5*dt*trans.quaternion_multiply(q_est, omega)
+    omega = np.array([0,p[i], q[i], r[i]])
+    omega_bias = np.array([0,p[i]-biasEst[0], q[i]-biasEst[1], r[i]-biasEst[2]])
+    q_ins = q_est + 0.5*dt*trans.quaternion_multiply(q_est, omega_bias)
     q_insOnly = q_insOnly + 0.5*dt*trans.quaternion_multiply(q_insOnly, omega)
     yawINS.append(trans.euler_from_quaternion(q_insOnly)[2])
     pitchINS.append(trans.euler_from_quaternion(q_insOnly)[0]) 
@@ -72,7 +74,7 @@ for i,t in enumerate(time):
     q_error = np.hstack((1,q_error[1:4]))
     #errorAngles = q_error[1:5]
     q_innov = np.hstack((1,gain*q_error[1:4]))
-    #biasEst = biasEst + bgain*q_error[1:5]
+    biasEst = biasEst - bgain*q_error[1:4]
     q_est = trans.quaternion_multiply(q_innov,q_ins)
     
     yawEst.append(trans.euler_from_quaternion(q_est)[2])
